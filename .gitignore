@@ -1,0 +1,11 @@
+# config local / ambiente
+.claude/
+__pycache__/
+*.pyc
+venv/
+venv_pdf/
+
+# saidas intermediarias geradas ao rodar os scripts
+scripts/tentativas_*/
+scripts/cracked_*.txt
+*.log
