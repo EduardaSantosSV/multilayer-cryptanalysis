@@ -182,17 +182,17 @@ story.append(Paragraph(
     "protegida por múltiplas camadas de criptografia. Foram fornecidos quatro "
     "arquivos:", styles["Corpo"]))
 story.append(ListFlowable([
-    ListItem(Paragraph("<b>message.en</b> — a mensagem secreta cifrada", styles["Corpo"])),
-    ListItem(Paragraph("<b>key_for_message.en</b> — a chave de decifração da mensagem, "
+    ListItem(Paragraph("<b>message.en</b>: a mensagem secreta cifrada", styles["Corpo"])),
+    ListItem(Paragraph("<b>key_for_message.en</b>: a chave de decifração da mensagem, "
                         "protegida por criptografia de chave pública (RSA)", styles["Corpo"])),
-    ListItem(Paragraph("<b>key_public.en</b> — a chave pública RSA correspondente, "
+    ListItem(Paragraph("<b>key_public.en</b>: a chave pública RSA correspondente, "
                         "protegida por criptografia simétrica (senha)", styles["Corpo"])),
-    ListItem(Paragraph("<b>key_for_rsa_public.hash</b> — hash criptográfico da senha de "
+    ListItem(Paragraph("<b>key_for_rsa_public.hash</b>: hash criptográfico da senha de "
                         "acesso à chave pública", styles["Corpo"])),
 ], bulletType="bullet"))
 story.append(Paragraph(
     "Nenhum algoritmo, modo de operação, tamanho de chave ou codificação foi "
-    "informado previamente — tudo precisou ser deduzido ou descoberto por "
+    "informado previamente, tudo precisou ser deduzido ou descoberto por "
     "tentativa sistemática, exceto o início da senha (“gu”), fornecido como "
     "pista inicial. O processo foi dividido em quatro etapas sequenciais, "
     "cada uma dependente do resultado da anterior:", styles["Corpo"]))
@@ -209,10 +209,10 @@ story.append(PageBreak())
 # =============================================================================
 story.append(Paragraph("2. Procedimentos executados", styles["H1"]))
 
-story.append(Paragraph("2.1. Etapa 1 — Descoberta da senha", styles["H2"]))
+story.append(Paragraph("2.1. Etapa 1: Descoberta da senha", styles["H2"]))
 story.append(Paragraph(
     "O arquivo <i>key_for_rsa_public.hash</i> contém uma string de 64 "
-    "caracteres hexadecimais, equivalente a 32 bytes — tamanho de digest "
+    "caracteres hexadecimais, equivalente a 32 bytes, tamanho de digest "
     "compatível com vários algoritmos de hash de 256 bits (SHA-256, "
     "SHA3-256, Keccak-256, BLAKE2s, BLAKE2b truncado, SHA-512/256, SM3, "
     "GOST Streebog-256, entre outros). A pista fornecida indicava que a "
@@ -229,7 +229,7 @@ story.append(ListFlowable([
                         "<font face='Courier'>crack_hash.py</font>).", styles["Corpo"])),
     ListItem(Paragraph("Aplicar mutações de senha (maiúsculas/minúsculas, sufixos "
                         "numéricos e símbolos comuns) e regras do hashcat "
-                        "(best64, rockyou-30000, dive — até 99 mil regras por palavra).",
+                        "(best64, rockyou-30000, dive, até 99 mil regras por palavra).",
                         styles["Corpo"])),
     ListItem(Paragraph("Rodar força bruta com máscara (hashcat -a 3) fixando o "
                         "prefixo “gu”/“Gu”/“GU” e variando o sufixo em três "
@@ -243,13 +243,83 @@ story.append(ListFlowable([
                         "temática do Biuro Szyfrów em polonês) para gerar "
                         "candidatos temáticos adicionais.", styles["Corpo"])),
     ListItem(Paragraph("Estender a força bruta usando GPU (Google Colab, notebook "
-                        "<font face='Courier'>colab_quebra_senha.ipynb</font>) para "
+                        "<font face='Courier'>colab_quebra_senha.py</font>) para "
                         "cobrir tamanhos maiores de forma viável em tempo.", styles["Corpo"])),
 ], bulletType="1"))
 story.append(Paragraph(
-    f"<b>Resultado:</b> {SENHA_DESCOBERTA}", styles["Destaque"]))
+    "<b>Registro das execuções (força bruta e dicionário).</b> A tabela a "
+    "seguir resume, em ordem, as tentativas rodadas na máquina local (hashcat "
+    "sobre CPU/GPU) e, por último, na GPU do Google Colab. A coluna "
+    "“combinações” é o tamanho do espaço de busca coberto em cada teste; os "
+    "tempos são de execução real.", styles["Corpo"]))
+story.append(Table([
+    [head("#"), head("Teste"), head("Combinações"), head("Tempo")],
+    [cell("1"), cell("Força bruta “gu” + 1 a 6 (minúsculas+maiúsculas+dígitos)"),
+     cell("56,8 bilhões"), cell("~1min44s")],
+    [cell("2"), cell("Hipótese de “\\n” no final da senha (mesmo espaço)"),
+     cell("56,8 bilhões"), cell("~1min29s")],
+    [cell("3"), cell("Força bruta “gu” + 1 a 6 com símbolos (ASCII completo)"),
+     cell("742 bilhões"), cell("~19 min")],
+    [cell("4"), cell("Tamanhos 7 e 8, só minúsculas"),
+     cell("8 bi + 208 bi"), cell("segundos a minutos")],
+    [cell("5"), cell("Tamanho 7, minúsculas+maiúsculas+dígitos"),
+     cell("3,5 trilhões"), cell("~1h32min")],
+    [cell("6"), cell("Dicionário pt-BR (palavras começando com “gu”)"),
+     cell("1.936"), cell("segundos")],
+    [cell("6b"), cell("Dicionário pt-BR + regra best66"),
+     cell("127.776"), cell("segundos")],
+    [cell("6c"), cell("Dicionário pt-BR + regra dive"),
+     cell("191.025.120"), cell("segundos")],
+    [cell("7"), cell("Dicionário polonês (palavras começando com “gu”)"),
+     cell("414"), cell("segundos")],
+    [cell("7b"), cell("Dicionário polonês + regra dive"),
+     cell("40.849.380"), cell("segundos")],
+    [label("8"), label("“gu” + 10 minúsculas, SENHA ENCONTRADA (GPU Tesla T4, Colab)"),
+     label("141 trilhões"), label("52 s")],
+], colWidths=[1.0*cm, 8.8*cm, 3.2*cm, 2.8*cm], style=TableStyle([
+    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1a1a2e")),
+    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#f4f4f8")]),
+    ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#d7f0d7")),
+])))
+story.append(Spacer(1, 8))
+story.append(Paragraph(
+    "Antes de partir para o hashcat, a mesma varredura por força bruta foi "
+    "prototipada em Python puro (script <font face='Courier'>crack_hash.py</font>): "
+    "o espaço “gu” + 6 minúsculas+dígitos (2,24 bilhões de combinações) levou "
+    "~51 min só de CPU, e “gu” + 5 minúsculas+maiúsculas+dígitos (931 milhões) "
+    "levou ~19 min. Esses tempos deixaram claro o porquê de migrar para o "
+    "hashcat com aceleração por GPU.", styles["Corpo"]))
+story.append(Paragraph(
+    "<b>Execução que encontrou a senha.</b> O comando abaixo, rodado na GPU "
+    "Tesla T4 do Google Colab (notebook <font face='Courier'>colab_quebra_senha.py"
+    "</font>, apêndice 5.3), testa a máscara “gu” seguida de 10 letras "
+    "minúsculas:", styles["Corpo"]))
+story.append(Preformatted(
+    'hashcat -m 1400 -a 3 hash.txt "gu?l?l?l?l?l?l?l?l?l?l" -O -w 3 -d 1 \\\n'
+    '    --session=gpu_colab \\\n'
+    '    --restore-file-path=.../hashcat_progresso/gpu_colab.restore',
+    styles["Codigo"]))
+story.append(Paragraph(
+    "Notebook completo no Google Colab: <font face='Courier'>"
+    "https://colab.research.google.com/drive/1Ew62xDPIvDcw4M2rQCV2qTLXA4SIf62N</font>",
+    styles["Legenda"]))
+story.append(Spacer(1, 8))
+story.append(Paragraph(
+    "<b>Observação sobre o processo.</b> O espaço dessa máscara tem 26^10 ≈ "
+    "141 trilhões de combinações, mas o hashcat encontrou a senha em apenas 52 "
+    "segundos, o indicador de progresso marcava só 0,09% do espaço percorrido "
+    "no momento do acerto. Ou seja, a senha estava relativamente “cedo” na "
+    "ordem em que o hashcat varre o espaço; não é que percorrer os 141 trilhões "
+    "leve 52 segundos. O tempo real depende de onde a senha cai nessa ordem, e "
+    "o pior caso (esgotar o espaço inteiro) ficaria na faixa de dias, coerente "
+    "com as estimativas de tempo da seção 4.1.", styles["Corpo"]))
+story.append(Paragraph(
+    f"<b>Resultado:</b> senha = {SENHA_DESCOBERTA} (hash SHA-256; encontrada na "
+    "execução #8).", styles["Destaque"]))
 
-story.append(Paragraph("2.2. Etapa 2 — Decifrar key_public.en", styles["H2"]))
+story.append(Paragraph("2.2. Etapa 2: Decifrar key_public.en", styles["H2"]))
 story.append(Paragraph(
     "Antes de ter a senha, foi feita uma análise estrutural dos arquivos "
     "cifrados (tamanhos e cabeçalhos), que não depende de nenhuma senha:",
@@ -259,9 +329,9 @@ story.append(Table([
     [cell("message.en"), cell("1520 bytes (múltiplo de 16)"),
      cell("Cifra de bloco 128-bit com padding (CBC/ECB)")],
     [cell("key_public.en"), cell("157 bytes (primo, não múltiplo de 8 nem 16)"),
-     cell("Sem padding de bloco — modo stream (CTR/CFB/OFB)")],
+     cell("Sem padding de bloco, modo stream (CTR/CFB/OFB)")],
     [cell("key_for_message.en"), cell("48 bytes = 384 bits"),
-     cell("Tamanho típico de ciphertext RSA cru — módulo provavelmente de 384 bits")],
+     cell("Tamanho típico de ciphertext RSA cru, módulo provavelmente de 384 bits")],
 ], colWidths=[3.3*cm, 5.0*cm, 7.7*cm], style=TableStyle([
     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1a1a2e")),
     ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
@@ -284,24 +354,24 @@ story.append(Paragraph(
 story.append(Paragraph(
     f"<b>Algoritmo/modo identificado:</b> {ALGORITMO_KEY_PUBLIC}", styles["Destaque"]))
 
-story.append(Paragraph("2.3. Etapa 3 — Fatorar o RSA e decifrar key_for_message.en", styles["H2"]))
+story.append(Paragraph("2.3. Etapa 3: Fatorar o RSA e decifrar key_for_message.en", styles["H2"]))
 story.append(Paragraph(
     "Com a chave pública em mãos (módulo N de 382 bits e expoente e extraídos "
     "do PEM), o script <font face='Courier'>etapa3_fatorar_rsa.py</font> tenta "
     "fatorar N em ordem crescente de custo computacional: consulta ao banco "
     "público factordb.com, divisão por tentativa, fatoração de Fermat "
-    "(eficiente quando os primos p e q são próximos — um erro clássico de "
+    "(eficiente quando os primos p e q são próximos, um erro clássico de "
     "geração de chave), Pollard's rho e Pollard p-1 (eficiente quando p-1 "
     "ou q-1 é suave). <b>Nenhuma dessas técnicas rápidas funcionou</b>: o "
     "factordb não tinha a fatoração, não há fatores pequenos, p e q não são "
     "próximos e p-1/q-1 não são suaves. Isso mostra que a chave, apesar de "
-    "curta, não possui as fraquezas estruturais clássicas — os dois primos "
+    "curta, não possui as fraquezas estruturais clássicas, os dois primos "
     "são equilibrados (191 bits cada) e aparentemente aleatórios.", styles["Corpo"]))
 story.append(Paragraph(
     "A fatoração exigiu, então, um algoritmo de crivo de propósito geral. "
     "Tentou-se ainda PARI/GP (<font face='Courier'>factor()</font>, que "
     "abandonou o MPQS por “número grande demais”) e GMP-ECM com B1 = 43.000.000 "
-    "(ineficaz, pois o ECM é lento para semiprimos equilibrados — ~13 h sem "
+    "(ineficaz, pois o ECM é lento para semiprimos equilibrados, ~13 h sem "
     "resultado). A solução veio com o <font face='Courier'>yafu v3.1.9</font> "
     "forçando o <b>SIQS</b> (Self-Initializing Quadratic Sieve) com "
     "<font face='Courier'>siqs(N)</font> em 12 threads, que fatorou N em "
@@ -315,7 +385,7 @@ story.append(Paragraph(
     "o ciphertext hexadecimal de key_for_message.en é decifrado via RSA "
     "(m = c^d mod n). O bloco resultante começa com <font face='Courier'>00 02</font> "
     "seguido de bytes de preenchimento não-nulos, um separador "
-    "<font face='Courier'>00</font> e, só então, a mensagem — isto é, "
+    "<font face='Courier'>00</font> e, só então, a mensagem, isto é, "
     "<b>padding PKCS#1 v1.5</b> (tipo 2). Removendo o padding, obtém-se a "
     "senha em ASCII usada para cifrar message.en.", styles["Corpo"]))
 story.append(Table([
@@ -331,11 +401,11 @@ story.append(Table([
     ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
 ])))
 
-story.append(Paragraph("2.4. Etapa 4 — Decifrar message.en", styles["H2"]))
+story.append(Paragraph("2.4. Etapa 4: Decifrar message.en", styles["H2"]))
 story.append(Paragraph(
     "message.en é um arquivo binário puro (sem base64), com cabeçalho "
     "“Salted__” + salt de 8 bytes idêntico ao formato usado em "
-    "key_public.en — ou seja, também foi cifrado por senha via OpenSSL. "
+    "key_public.en, ou seja, também foi cifrado por senha via OpenSSL. "
     "Como a Etapa 3 produz uma senha/texto (não uma chave bruta), essa "
     "senha é usada diretamente. A análise estrutural indicou um ciphertext "
     "múltiplo exato de 16 bytes (ao contrário de key_public.en), apontando "
@@ -412,7 +482,7 @@ story.append(Paragraph(
     "(36 símbolos), o tamanho 10 tem 36^8 ≈ 2,8 trilhões de combinações "
     "(levou ~19 minutos numa GPU a 2,47 GH/s), mas o tamanho 11 tem "
     "36^9 ≈ 101 trilhões (~11-12 horas) e o tamanho 12 tem 36^10 ≈ 3,6 "
-    "quatrilhões (~17 dias) — na MESMA GPU. Como o hashcat processa os "
+    "quatrilhões (~17 dias), na MESMA GPU. Como o hashcat processa os "
     "tamanhos em ordem crescente dentro de um único comando, o tamanho 12 "
     "só começaria a ser testado depois de completar o 10 e o 11, tornando a "
     "execução conjunta inviável. A lição técnica é que o tempo de uma "
@@ -436,7 +506,7 @@ story.append(Paragraph(
     "de instância única (verificado pela mensagem de erro “Already an "
     "instance '/usr/bin/hashcat' running”). A segunda execução encerrou "
     "imediatamente com código de saída 1, sem processar nenhuma "
-    "combinação, enquanto a primeira ainda estava rodando — o que, sem "
+    "combinação, enquanto a primeira ainda estava rodando, o que, sem "
     "verificação cuidadosa dos logs, poderia ter sido confundido com uma "
     "faixa de senha genuinamente “esgotada sem sucesso” quando na "
     "verdade ela nunca chegou a ser testada. A lição técnica é que "
@@ -512,7 +582,7 @@ story.append(Paragraph(
 story.append(Paragraph(
     "A fatoração do módulo RSA de 382 bits foi a parte mais custosa do "
     "trabalho. Antes de chegar à técnica que funcionou (SIQS), várias "
-    "abordagens mais baratas foram tentadas e descartadas — cada uma por um "
+    "abordagens mais baratas foram tentadas e descartadas, cada uma por um "
     "motivo técnico específico, documentado abaixo:", styles["Corpo"]))
 story.append(ListFlowable([
     ListItem(Paragraph("<b>factordb.com:</b> o módulo não constava no banco "
@@ -520,7 +590,7 @@ story.append(ListFlowable([
                         "fatorado). Não é um módulo reaproveitado/conhecido.",
                         styles["Corpo"])),
     ListItem(Paragraph("<b>Divisão por tentativa (até 2 milhões):</b> não há "
-                        "fatores pequenos — os dois primos têm 191 bits.",
+                        "fatores pequenos, os dois primos têm 191 bits.",
                         styles["Corpo"])),
     ListItem(Paragraph("<b>Fatoração de Fermat (5 milhões de iterações):</b> "
                         "falhou porque p e q não são próximos entre si "
@@ -533,7 +603,7 @@ story.append(ListFlowable([
                         "não ocorre.", styles["Corpo"])),
     ListItem(Paragraph("<b>PARI/GP factor():</b> abandonou o crivo MPQS com a "
                         "mensagem “number too big to be factored with MPQS, "
-                        "giving up” — a implementação do MPQS no PARI tem um "
+                        "giving up”, a implementação do MPQS no PARI tem um "
                         "teto de tamanho abaixo do nosso N.", styles["Corpo"])),
     ListItem(Paragraph("<b>GMP-ECM (B1 = 43.000.000, curvas ilimitadas):</b> "
                         "rodou ~13 h sem achar fator. O método das curvas "
@@ -562,15 +632,16 @@ story.append(PageBreak())
 # =============================================================================
 # 5. APENDICE - CODIGO-FONTE COMPLETO
 # =============================================================================
-story.append(Paragraph("5. Apêndice — Código-fonte completo", styles["H1"]))
+story.append(Paragraph("5. Apêndice: Código-fonte completo", styles["H1"]))
 
 SCRIPTS = [
-    ("crack_hash.py", "Etapa 1 — ataque de dicionário em Python"),
-    ("etapa1_descobrir_senha.sh", "Etapa 1 — roteiro de força bruta/dicionário (hashcat)"),
-    ("etapa2_analise_estrutural.sh", "Etapa 2 — análise estrutural dos arquivos cifrados"),
-    ("etapa2_decifrar_key_public.sh", "Etapa 2 — decifração automática de key_public.en"),
-    ("etapa3_fatorar_rsa.py", "Etapa 3 — fatoração do módulo RSA e decifração de key_for_message.en"),
-    ("etapa4_decifrar_message.sh", "Etapa 4 — decifração automática de message.en"),
+    ("crack_hash.py", "Etapa 1: ataque de dicionário em Python"),
+    ("colab_quebra_senha.py", "Etapa 1: força bruta por máscara na GPU (Google Colab) que encontrou a senha"),
+    ("etapa1_descobrir_senha.sh", "Etapa 1: roteiro de força bruta/dicionário (hashcat)"),
+    ("etapa2_analise_estrutural.sh", "Etapa 2: análise estrutural dos arquivos cifrados"),
+    ("etapa2_decifrar_key_public.sh", "Etapa 2: decifração automática de key_public.en"),
+    ("etapa3_fatorar_rsa.py", "Etapa 3: fatoração do módulo RSA e decifração de key_for_message.en"),
+    ("etapa4_decifrar_message.sh", "Etapa 4: decifração automática de message.en"),
 ]
 
 WRAP_WIDTH = 100
@@ -598,6 +669,59 @@ for idx, (fname, desc) in enumerate(SCRIPTS, start=1):
 
 
 # =============================================================================
+# 6. EVIDENCIAS DE EXECUCAO
+# =============================================================================
+story.append(Paragraph("6. Evidências de execução", styles["H1"]))
+story.append(Paragraph(
+    "Para comprovar que o trabalho foi de fato executado por nós, reunimos os "
+    "registros brutos que as próprias ferramentas geraram durante a resolução. "
+    "Os arquivos completos acompanham a entrega na pasta "
+    "<font face='Courier'>evidencias_execucao/</font>.", styles["Corpo"]))
+
+story.append(Paragraph("6.1. Fatoração do RSA (yafu / SIQS)", styles["H2"]))
+story.append(Paragraph(
+    "A fatoração do módulo de 382 bits foi a etapa mais custosa: rodou por "
+    "cerca de 11 horas num notebook com processador Intel Core i5-1235U (12 "
+    "threads, AVX2). O trecho abaixo do log (<font face='Courier'>"
+    "evidencias_execucao/factor.log</font>) registra o início na noite de 27/10 e o término "
+    "na manhã de 28/10, com os dois primos recuperados ao final, exatamente o "
+    "p e o q da seção 3.2:", styles["Corpo"]))
+story.append(Preformatted(
+    "10/27/26 19:13:31  starting SIQS on c115: 884448668806...83397028207\n"
+    "10/27/26 19:13:32  n = 117 digits, 386 bits\n"
+    "10/27/26 19:13:32  factor base: 298928 primes (max prime = 8924137)\n"
+    "10/27/26 19:13:32  using AVX2 enabled 32k sieve core\n"
+    "10/27/26 19:13:32  ==== sieving started (12 threads) ====\n"
+    "10/28/26 06:17:06  299844 relations found: 68714 full + 231130 from 5719221 partial\n"
+    "10/28/26 06:17:06  QS elapsed time = 39814.71 seconds\n"
+    "10/28/26 06:19:17  lanczos halted after 4575 iterations\n"
+    "10/28/26 06:19:18  prp58 = 3035927131115446151830465199210270095634389843965259549441\n"
+    "10/28/26 06:19:18  prp58 = 2913273707204223987138708563885998591118852596104762121327\n"
+    "10/28/26 06:19:18  SIQS elapsed time = 39946.24 seconds  (~11,1 h)",
+    styles["Codigo"]))
+story.append(Paragraph(
+    "O arquivo <font face='Courier'>evidencias_execucao/siqs_progresso_amostra.txt</font> "
+    "traz uma amostra do progresso ao vivo do peneiramento, com o número de "
+    "relações subindo de 0 até as ~299 mil necessárias ao longo da madrugada "
+    "(a ~145 relações por segundo). O estado completo do peneiramento (arquivo "
+    "<font face='Courier'>siqs.dat</font>, de ~405 MB) não foi anexado por "
+    "causa do tamanho, mas os logs reproduzem toda a linha do tempo.",
+    styles["Corpo"]))
+
+story.append(Paragraph("6.2. Quebra da senha (hashcat na GPU)", styles["H2"]))
+story.append(Paragraph(
+    "A senha foi encontrada rodando o hashcat numa GPU Tesla T4 do Google "
+    "Colab (notebook do apêndice 5.3), testando a máscara “gu” + 10 minúsculas. "
+    "O acerto saiu em 52 segundos. O notebook, com as saídas de execução "
+    "salvas, está disponível em:", styles["Corpo"]))
+story.append(Paragraph(
+    "<font face='Courier'>"
+    "https://colab.research.google.com/drive/1Ew62xDPIvDcw4M2rQCV2qTLXA4SIf62N</font>",
+    styles["Legenda"]))
+story.append(PageBreak())
+
+
+# =============================================================================
 # BUILD
 # =============================================================================
 def add_page_number(canvas, doc):
@@ -605,7 +729,7 @@ def add_page_number(canvas, doc):
     canvas.setFont("Helvetica", 8)
     canvas.setFillColor(colors.HexColor("#888888"))
     canvas.drawRightString(A4[0] - 2 * cm, 1.3 * cm, f"Página {doc.page}")
-    canvas.drawString(2 * cm, 1.3 * cm, "Trabalho de Criptoanálise — Grupo 14")
+    canvas.drawString(2 * cm, 1.3 * cm, "Trabalho de Criptoanálise - Grupo 14")
     canvas.restoreState()
 
 
@@ -613,7 +737,7 @@ doc = SimpleDocTemplate(
     str(OUT_PATH), pagesize=A4,
     topMargin=2.2 * cm, bottomMargin=2.2 * cm,
     leftMargin=2.2 * cm, rightMargin=2.2 * cm,
-    title="Trabalho de Criptoanálise — Grupo 14",
+    title="Trabalho de Criptoanálise - Grupo 14",
     author="Julia Brenda Souza da Rosa, Eduarda dos Santos da Silva",
 )
 doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)

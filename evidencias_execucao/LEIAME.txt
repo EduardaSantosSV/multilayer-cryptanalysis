@@ -1,0 +1,31 @@
+EVIDENCIAS DE EXECUCAO - Grupo 14 (Julia Brenda Souza da Rosa e Eduarda dos Santos da Silva)
+Trabalho de Criptoanalise - AEDS3 / UFPEL
+
+Esta pasta tem os registros que as proprias ferramentas geraram enquanto a
+gente resolvia o trabalho, pra mostrar que rodamos tudo de verdade.
+
+- factor.log
+    Log do yafu da fatoracao do RSA de 382 bits (a parte que levou ~11h).
+    Comeca em 27/10 19:13 e termina em 28/10 06:19, e no final aparecem os
+    dois primos p e q (os mesmos do relatorio). Tempo total: 39946 s (~11,1 h).
+
+- session.log
+    Info da maquina onde rodou (Intel Core i5-1235U, AVX2) e os horarios de
+    cada sessao do yafu.
+
+- batch.txt
+    O comando que a gente passou pro yafu pra forcar o metodo SIQS
+    (siqs(N) com o modulo inteiro).
+
+- siqs_progresso_amostra.txt
+    Amostra do progresso ao vivo do peneiramento: da pra ver o numero de
+    relacoes subindo de 0 ate as ~299 mil necessarias, com a taxa (~145 rel/s)
+    e o ETA caindo ao longo da madrugada. (O log original e uma linha gigante
+    atualizada ao vivo; aqui esta so uma amostra legivel.)
+
+A quebra da senha (Etapa 1) foi feita no hashcat, inclusive na GPU Tesla T4
+do Google Colab. O notebook com as saidas de execucao salvas esta em:
+https://colab.research.google.com/drive/1Ew62xDPIvDcw4M2rQCV2qTLXA4SIf62N
+
+Obs: o estado completo do peneiramento (siqs.dat, ~405 MB) nao entrou aqui
+por causa do tamanho - os logs ja contam a historia toda.
